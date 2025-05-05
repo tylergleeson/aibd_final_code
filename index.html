@@ -414,9 +414,32 @@
             color: #2c3e50;
             font-size: 1.15em;
         }
+
+        .slides-link-btn {
+            position: fixed;
+            top: 24px;
+            right: 32px;
+            z-index: 1000;
+            background: #3498db;
+            color: #fff;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1.1em;
+            font-weight: bold;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(44,62,80,0.08);
+            transition: background 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .slides-link-btn:hover {
+            background: #217dbb;
+            box-shadow: 0 4px 16px rgba(44,62,80,0.15);
+        }
     </style>
 </head>
 <body>
+    <a href="presentation.html" class="slides-link-btn" target="_blank">Slides</a>
     <div class="project-header">
         <h1>Chlorine Demand Prediction Model</h1>
         <div class="subtitle">Optimizing Inventory Management Through Machine Learning</div>
