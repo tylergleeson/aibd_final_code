@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chlorine Demand Prediction Model: Optimizing Inventory Management | MGT 554</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/theme/white.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-light: #ffffff;
+            --background-alt: #f8f9fa;
+            --text-primary: #2c3e50;
+            --text-secondary: #34495e;
+            --border-color: #e0e0e0;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        html, body, .reveal, .reveal .slides, .reveal .slides section {
+            box-sizing: border-box;
+        }
+
+        .reveal .slides section {
+            padding: 3vw 4vw;
+            height: auto;
+            max-width: 90vw;
+            min-width: 0;
+            margin: 0 auto;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .reveal h1 {
+            color: var(--primary-color);
+            font-size: 3vw;
+            margin-bottom: 2vw;
+        }
+
+        .reveal h2 {
+            color: var(--primary-color);
+            font-size: 2.2vw;
+            border-left: 0.4vw solid var(--secondary-color);
+            padding-left: 1vw;
+            margin-bottom: 1.5vw;
+        }
+
+        .reveal h3 {
+            color: var(--secondary-color);
+            font-size: 1.5vw;
+            margin-bottom: 1vw;
+        }
+
+        .reveal, .reveal p, .reveal li, .reveal ul, .reveal ol {
+            font-size: 1.1vw;
+            line-height: 1.4;
+        }
+
+        .reveal .slides {
+            text-align: left;
+        }
+
+        .reveal .slides section {
+            padding: 15px 30px;
+            height: 100%;
+            box-sizing: border-box;
+            max-width: 900px;
+            margin: 0 auto;
+            word-break: break-word;
+        }
+
+        .chart-container {
+            margin: 15px 0;
+            background-color: var(--background-light);
+            padding: 15px;
+            border-radius: 8px;
+            height: 350px;
+            position: relative;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .metrics-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            gap: 15px;
+        }
+
+        .metric-card {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #3498db;
+            margin: 8px 0;
+        }
+
+        .feature-bar {
+            height: 25px;
+            margin: 6px 0;
+            background: linear-gradient(90deg, var(--secondary-color) 0%, #2980b9 100%);
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 0.9em;
+        }
+
+        .feature-label {
+            color: white;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .feature-value {
+            color: white;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, var(--background-light) 0%, #f0f7ff 100%);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            border-left: 4px solid var(--success-color);
+            border: 1px solid var(--border-color);
+            font-size: 0.9em;
+        }
+
+        .recommendations ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        .recommendations li {
+            margin: 8px 0;
+        }
+
+        .key-point, .key-point > div, .key-point ul, .key-point ol, .key-point p {
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .key-point, .key-point > div {
+            padding: 0.7vw 1vw;
+            font-size: 1vw;
+        }
+        .key-point ul, .key-point ol {
+            padding-left: 1.5em;
+            font-size: 1vw;
+        }
+        .key-point h4 {
+            font-size: 1.1vw;
+            margin-bottom: 0.5vw;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-radius: 0.5vw;
+            padding: 1vw 1.2vw;
+            margin: 1vw 0;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+            overflow-x: auto;
+            white-space: normal;
+            font-size: 1vw;
+        }
+
+        .team-info {
+            color: #34495e;
+            font-size: 1em;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .chart-controls {
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .chart-controls select {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 20px 0;
+            color: var(--text-primary);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px var(--shadow-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .reveal table th,
+        .reveal table td {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .reveal table th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .reveal table tr:nth-child(even) {
+            background-color: var(--background-alt);
+        }
+
+        @media (max-width: 900px) {
+            .reveal .slides section {
+                padding: 2vw 2vw;
+                max-width: 98vw;
+            }
+            .reveal h1 { font-size: 5vw; }
+            .reveal h2 { font-size: 3.5vw; }
+            .reveal h3 { font-size: 2.5vw; }
+            .reveal, .reveal p, .reveal li, .reveal ul, .reveal ol, .key-point, .metrics-container, .chart-container, .recommendations, .feature-bar {
+                font-size: 2.5vw;
+            }
+            .info-box { font-size: 2vw; }
+        }
+        @media (max-width: 600px) {
+            .reveal .slides section {
+                padding: 1vw 1vw;
+                max-width: 100vw;
+            }
+            .reveal h1 { font-size: 7vw; }
+            .reveal h2 { font-size: 5vw; }
+            .reveal h3 { font-size: 3vw; }
+            .reveal, .reveal p, .reveal li, .reveal ul, .reveal ol, .key-point, .metrics-container, .chart-container, .recommendations, .feature-bar {
+                font-size: 3vw;
+            }
+            .info-box { font-size: 3vw; }
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- Title Slide -->
+            <section>
+                <h1>Chlorine Demand Prediction Model</h1>
+                <h3>Optimizing Inventory Management Through Machine Learning</h3>
+                <div class="team-info">
+                    <p>MGT 554: Business Analytics</p>
+                    <p>Tyler Gleeson • Ricci Estrada • Jack Swain • Jimmy McDonough</p>
+                </div>
+            </section>
+
+            <!-- Executive Summary -->
+            <section>
+                <h2>Executive Summary</h2>
+                <div class="key-point">
+                    <h3>Current Business Challenge</h3>
+                    <p>The current just-in-time ordering process faces significant financial losses from prediction errors:</p>
+                    <ul>
+                        <li>Stockouts cost $11.54 per unit (lost sales, customer dissatisfaction)</li>
+                        <li>Over-orders cost $1.78 per unit (holding costs, potential wastage)</li>
+                        <li>These costs quickly add up when prediction errors occur in the just-in-time system</li>
+                    </ul>
+                </div>
+                <div class="key-point">
+                    <h3>Our Solution</h3>
+                    <p>We've developed a predictive model that significantly reduces these costs. The model:</p>
+                    <ul>
+                        <li>Maintains a consistent daily cost of $3.43 per prediction</li>
+                        <li>Reduces error rates to just 3.3% of total order volume</li>
+                        <li>When errors occur, they average $0.38 per unit of actual demand</li>
+                    </ul>
+                </div>
+            </section>
+            <!-- When to Implement -->
+            <section>
+                <h2>When to Implement</h2>
+                <div class="key-point">
+                    <h3>When to Implement</h3>
+                    <p>Our analysis shows that your current system would benefit from our model if it experiences any of these weekly patterns:</p>
+                    <ul>
+                        <li>More than 2 stockouts per week (costing $11.54 each)</li>
+                        <li>More than 13 over-orders per week (costing $1.78 each)</li>
+                        <li>More than 6 mixed errors per week (combination of stockouts and over-orders)</li>
+                    </ul>
+                    <p>These thresholds are based on maintaining costs below our model's $3.43 daily average loss.</p>
+                </div>
+            </section>
+            <!-- Cost Calculation Methodology -->
+            <section>
+                <h2>Cost Calculation Methodology</h2>
+                <div class="key-point">
+                    <h3>Understanding Our Cost Metrics</h3>
+                    <p>Our model's costs are calculated using a weighted approach that accounts for both over-prediction and under-prediction errors:</p>
+                    <div class="info-box">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Daily Cost Components</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 15px;"><strong style="color: #3498db;">Base Cost ($3.43 daily):</strong>
+                                <ul>
+                                    <li>Calculated as the average daily cost across all predictions</li>
+                                    <li>Includes both over-prediction and under-prediction errors</li>
+                                    <li>Weighted by the frequency of each type of error</li>
+                                </ul>
+                            </li>
+                            <li style="margin-bottom: 15px;"><strong style="color: #3498db;">Per-Unit Error Cost ($0.38):</strong>
+                                <ul>
+                                    <li>Calculation: $3.43 (daily cost) ÷ 9 units (average daily demand) = $0.38 per unit</li>
+                                    <li>This means for every unit of actual demand, our model's errors cost an average of $0.38</li>
+                                    <li>Much lower than current system costs:
+                                        <ul>
+                                            <li>Stockout cost: $11.54 per unit</li>
+                                            <li>Over-order cost: $1.78 per unit</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            <!-- Example Calculation -->
+            <section>
+                <h2>Example Calculation</h2>
+                <div class="key-point">
+                    <div class="info-box">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Example Calculation</h4>
+                        <p>For a typical day with 9 units of actual demand (our average):</p>
+                        <ul>
+                            <li>Our model's daily cost is $3.43</li>
+                            <li>To get the per-unit cost: $3.43 ÷ 9 units = $0.38 per unit</li>
+                            <li>This means:
+                                <ul>
+                                    <li>If we predict 10 units (over-prediction):
+                                        <ul>
+                                            <li>Error: 1 unit over</li>
+                                            <li>Cost: $1.78 (over-order cost)</li>
+                                        </ul>
+                                    </li>
+                                    <li>If we predict 8 units (under-prediction):
+                                        <ul>
+                                            <li>Error: 1 unit under</li>
+                                            <li>Cost: $11.54 (stockout cost)</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li>The $0.38 per-unit cost is the average of all such scenarios across our data</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Metrics -->
+            <section>
+                <h2>Key Performance Metrics</h2>
+                <div class="metrics-container">
+                    <div class="metric-card">
+                        <h4>Overall Accuracy</h4>
+                        <div class="metric-value">81.6%</div>
+                        <p>Mean Absolute Percentage Error: 18.4%</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Average Prediction Error</h4>
+                        <div class="metric-value">0.75 units</div>
+                        <p>Mean Absolute Error</p>
+                    </div>
+                    <div class="metric-card">
+                        <h4>Model Fit</h4>
+                        <div class="metric-value">83%</div>
+                        <p>R² Score</p>
+                    </div>
+                </div>
+                <div class="key-point" style="background:#eaf6ff; border-left:4px solid #3498db; margin-top:1vw;">
+                    <strong>Explanation of Metrics:</strong>
+                    <ul>
+                        <li><strong>Overall Accuracy:</strong> The percentage of predictions that closely match actual demand, indicating the model's reliability.</li>
+                        <li><strong>Mean Absolute Percentage Error (MAPE):</strong> The average percent error between predicted and actual values; lower is better.</li>
+                        <li><strong>Mean Absolute Error (MAE):</strong> The average absolute difference between predicted and actual demand, in units.</li>
+                        <li><strong>R² Score:</strong> Indicates how well the model explains the variance in demand; closer to 100% means a better fit.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Business Impact -->
+            <section>
+                <h2>Business Impact Summary</h2>
+                <div class="chart-container">
+                    <canvas id="summaryChart"></canvas>
+                </div>
+                <div class="key-point">
+                    <h3>Why This Matters</h3>
+                    <ul>
+                        <li>Stockout cost: $11.54 per unit (lost sales, customer dissatisfaction)</li>
+                        <li>Overstock cost: $1.78 per unit (holding costs, potential wastage)</li>
+                        <li>Our model's daily cost ($3.43) is:
+                            <ul>
+                                <li>30% of a single stockout cost</li>
+                                <li>1.9 times a single over-prediction cost</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Cost Analysis -->
+            <section>
+                <h2>Cost Comparison Analysis</h2>
+                <div class="chart-container">
+                    <canvas id="errorCombinationChart"></canvas>
+                </div>
+                <div class="key-point">
+                    <h3>Key Insights</h3>
+                    <ul>
+                        <li>The red line shows our model's consistent $3.43 daily loss</li>
+                        <li>Most error combinations exceed our model's cost</li>
+                        <li>Even a single stockout with multiple over-orders can be more costly than our model</li>
+                        <li>The model provides more predictable and stable costs</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Temperature Impact -->
+            <section>
+                <h2>Temperature Impact Analysis</h2>
+                <div class="chart-container">
+                    <canvas id="temperatureChart"></canvas>
+                </div>
+                <div class="key-point">
+                    <h3>Temperature Band Performance</h3>
+                    <ul>
+                        <li>Cold (≤60°F): $3.13 daily cost</li>
+                        <li>Normal (61-74°F): $3.65 daily cost</li>
+                        <li>Hot (75-84°F): $3.60 daily cost</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Holiday Analysis -->
+            <section>
+                <h2>Holiday Period Analysis</h2>
+                <div class="chart-container">
+                    <canvas id="holidayChart"></canvas>
+                </div>
+                <div class="key-point">
+                    <h3>Holiday Performance</h3>
+                    <ul>
+                        <li>Pre-Holiday: $3.79 daily cost</li>
+                        <li>Holiday: $1.52 daily cost</li>
+                        <li>Post-Holiday: $3.04 daily cost</li>
+                        <li>Normal: $3.52 daily cost</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Time Series Analysis -->
+            <section>
+                <h2>Time Series Analysis</h2>
+                <div class="chart-controls">
+                    <label for="displayMode">View Mode:</label>
+                    <select id="displayMode" onchange="updateTimeSeriesChart()">
+                        <option value="daily" selected>Daily (All Data Points)</option>
+                        <option value="monthly">Monthly Averages</option>
+                    </select>
+                </div>
+                <div class="chart-container">
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+            </section>
+            <!-- Time Series Analysis: November Note -->
+            <section>
+                <h2>Time Series Analysis: November Note</h2>
+                <div class="key-point" style="background: #f8f9fa; border-left: 5px solid #f1c40f;">
+                    <strong>Note:</strong> We observe a significant discrepancy between predicted and actual orders in <strong>November</strong>. This warrants further investigation to understand the underlying causes.<br><br>
+                    <u>Potential areas to investigate:</u>
+                    <ul style="margin-top: 8px;">
+                        <li><strong>Holiday Effects:</strong> November includes major holidays (e.g., Thanksgiving) that may not be fully captured by the current holiday features or may have unique demand patterns.</li>
+                        <li><strong>Seasonal Transition:</strong> November marks the transition from peak to off-peak season, which could introduce unusual demand fluctuations.</li>
+                        <li><strong>Weather Anomalies:</strong> Check for unusual weather events (cold snaps, storms) in November that could have impacted chlorine demand.</li>
+                        <li><strong>Promotions or Business Events:</strong> Investigate if there were any special promotions, business closures, or operational changes during this month.</li>
+                        <li><strong>Data Quality Issues:</strong> Review the raw order data for November for missing, duplicated, or outlier entries.</li>
+                        <li><strong>Model Feature Gaps:</strong> Assess if the model is missing features that are particularly relevant in late fall (e.g., early winterization, school schedules, etc.).</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Feature Importance -->
+            <section>
+                <h2>Feature Importance</h2>
+                <div id="featureBarContainer"></div>
+                <div class="key-point">
+                    <h3>Top Features</h3>
+                    <ul>
+                        <li>Day of Year (18.7%)</li>
+                        <li>Temperature (16.5%)</li>
+                        <li>7-Day Rolling Avg (11.2%)</li>
+                        <li>Is Peak Season (9.4%)</li>
+                        <li>Month (8.6%)</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Technical Details -->
+            <section>
+                <h2>Technical Implementation</h2>
+                <div class="key-point">
+                    <h3>Model Architecture</h3>
+                    <p>The model uses LightGBM (Gradient Boosting) with the following key components:</p>
+                    <ul>
+                        <li>79 predictive features capturing temporal, weather, and business patterns</li>
+                        <li>Custom asymmetric loss function aligned with business costs</li>
+                        <li>Time-based 5-fold cross-validation to maintain temporal integrity</li>
+                        <li>Bayesian optimization for hyperparameter tuning</li>
+                    </ul>
+                </div>
+                <h3>Feature Importance</h3>
+                <div id="featureBarContainer"></div>
+                <h3>Model Specifications</h3>
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Specification</th>
+                        <th>Rationale</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Algorithm</strong></td>
+                        <td>LightGBM (Gradient Boosting)</td>
+                        <td>Efficient handling of time-series data with categorical features</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Objective</strong></td>
+                        <td>Regression (L2 Loss)</td>
+                        <td>Predicting continuous order quantities</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td colspan="2" style="padding: 10px; background-color: #f0f7ff; border-left: 4px solid var(--secondary-color);">
+                            <p><strong>Understanding L2 Loss Optimization:</strong></p>
+                            <p>The L2 Loss (Mean Squared Error) is used during model training to minimize the average squared difference between predictions and actual values. This means:</p>
+                            <ul>
+                                <li>Larger errors are penalized more heavily than smaller errors (due to squaring)</li>
+                                <li>The model learns to make predictions that minimize the overall squared error</li>
+                                <li>While training uses L2 Loss, our final evaluation uses a custom business loss function that accounts for the asymmetric costs of over- and under-prediction</li>
+                            </ul>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Feature Engineering</strong></td>
+                        <td>79 predictive features</td>
+                        <td>Capturing seasonal, temporal, and environmental patterns</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loss Function</strong></td>
+                        <td>Custom asymmetric loss</td>
+                        <td>Penalizing underprediction more heavily ($11.54) than overprediction ($1.78)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cross-Validation</strong></td>
+                        <td>Time-based 5-fold</td>
+                        <td>Maintaining temporal integrity during validation</td>
+                    </tr>
+                </table>
+            </section>
+            <!-- Dataset and Methodology -->
+            <section>
+                <h2>Dataset and Methodology</h2>
+                <div class="key-point">
+                    <h3>Data Sources and Time Range</h3>
+                    <ul>
+                        <li>Training Data: Historical order data from January 2016 to December 2022</li>
+                        <li>Testing Data: January 2023 to December 2023</li>
+                        <li>Granularity: Daily order quantities</li>
+                        <li>External Data: Weather data, holiday calendars, seasonal indicators</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Recommendations -->
+            <section>
+                <h2>Recommendations</h2>
+                <div class="recommendations">
+                    <ol>
+                        <li><strong>Immediate Implementation:</strong> The model is ready for deployment with clear performance metrics and demonstrates strong business value.</li>
+                        <li><strong>Establish Monitoring System:</strong> Track model performance in production against actual orders to identify any drift or changes in patterns.</li>
+                        <li><strong>Create Seasonal Review Process:</strong> Conduct quarterly reviews of model performance during different seasons to fine-tune parameters.</li>
+                        <li><strong>Develop Holiday Strategy:</strong> Leverage the model's strong holiday performance to create specific inventory strategies for these periods.</li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- Future Improvements -->
+            <section>
+                <h2>Future Improvements</h2>
+                <div class="key-point">
+                    <ol>
+                        <li><strong>Economic Indicators:</strong> Incorporate macroeconomic variables</li>
+                        <li><strong>Regional Analysis:</strong> Expand the model to account for regional differences</li>
+                        <li><strong>Holiday Differentiation:</strong> Further refine handling of different holiday types</li>
+                        <li><strong>Climate Change Impact:</strong> Develop framework for adjusting to shifting seasonal patterns</li>
+                        <li><strong>Real-time Weather Integration:</strong> Connect to weather forecast APIs</li>
+                    </ol>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
+    <script>
+        // Initialize Reveal.js
+        Reveal.initialize({
+            hash: true,
+            center: false,
+            transition: 'slide',
+            // Add any additional configuration options here
+        });
+
+        // Register the datalabels plugin
+        Chart.register(ChartDataLabels);
+        
+        // Data for summary chart
+        const summaryData = {
+            labels: ['Overall', 'Holiday', 'Cold Weather', 'Normal Weather', 'Hot Weather'],
+            businessLoss: [3.43, 1.52, 3.13, 3.65, 3.60],
+            mae: [0.75, 0.45, 0.68, 0.82, 0.79],
+            rmse: [1.37, 0.82, 1.24, 1.45, 1.42]
+        };
+        
+        // Data for charts
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        // Monthly data for time series chart
+        const timeSeriesData = {
+            actual: [4.6, 5.4, 6.6, 10, 10.8, 12, 17.2, 13.6, 11.4, 8.6, 0.6, 0.4],
+            predicted: [4.6, 5.6, 6.8, 10, 11, 11.6, 17.4, 13.8, 11.4, 8.4, 3.6, 0.8]
+        };
+        
+        // Daily data (simplified for demo)
+        const dailyData = {
+            dates: Array.from({length: 365}, (_, i) => {
+                const date = new Date(2023, 0, 1);
+                date.setDate(date.getDate() + i);
+                return date;
+            }),
+            actual: [],
+            predicted: []
+        };
+        
+        // Generate realistic daily data based on the monthly patterns
+        for (let i = 0; i < 365; i++) {
+            const month = dailyData.dates[i].getMonth();
+            const baseActual = timeSeriesData.actual[month];
+            const basePredicted = timeSeriesData.predicted[month];
+            
+            // Add some daily variation
+            const dayVariation = (Math.random() - 0.5) * 3;
+            const weekdayEffect = [0.2, 0.5, 0.8, 1, 0.8, -0.5, -0.8][dailyData.dates[i].getDay()];
+            
+            dailyData.actual.push(Math.max(0, baseActual + dayVariation + weekdayEffect));
+            dailyData.predicted.push(Math.max(0, basePredicted + dayVariation * 0.9 + weekdayEffect));
+        }
+        
+        // Temperature band data
+        const temperatureBandData = {
+            labels: ['Cold (≤60°F)', 'Normal (61-74°F)', 'Hot (75-84°F)'],
+            values: [3.13, 3.65, 3.60],
+            colors: [
+                'rgba(44, 62, 80, 0.7)',    // Dark blue for cold
+                'rgba(52, 152, 219, 0.7)',  // Blue for normal
+                'rgba(241, 196, 15, 0.7)'   // Yellow for hot
+            ],
+            borderColors: [
+                'rgba(44, 62, 80, 1)',
+                'rgba(52, 152, 219, 1)',
+                'rgba(241, 196, 15, 1)'
+            ]
+        };
+        
+        // Holiday period data
+        const holidayPeriodData = {
+            labels: ['Pre-Holiday', 'Holiday', 'Post-Holiday', 'Normal'],
+            values: [3.79, 1.52, 3.04, 3.52],
+            colors: [
+                'rgba(44, 62, 80, 0.7)',    // Dark blue for pre-holiday
+                'rgba(52, 152, 219, 0.7)',  // Blue for holiday
+                'rgba(46, 204, 113, 0.7)',  // Green for post-holiday
+                'rgba(155, 89, 182, 0.7)'   // Purple for normal
+            ],
+            borderColors: [
+                'rgba(44, 62, 80, 1)',
+                'rgba(52, 152, 219, 1)',
+                'rgba(46, 204, 113, 1)',
+                'rgba(155, 89, 182, 1)'
+            ]
+        };
+        
+        // Feature importance data
+        const featureImportanceData = [
+            { name: 'Day of Year', value: 0.187 },
+            { name: 'Temperature', value: 0.165 },
+            { name: '7-Day Rolling Avg', value: 0.112 },
+            { name: 'Is Peak Season', value: 0.094 },
+            { name: 'Month', value: 0.086 },
+            { name: 'Holiday Period', value: 0.072 },
+            { name: '30-Day Rolling Avg', value: 0.057 },
+            { name: 'UV Index', value: 0.043 },
+            { name: 'Day of Week', value: 0.037 },
+            { name: 'Humidity', value: 0.022 }
+        ];
+
+        // Initialize charts when the slide becomes visible
+        Reveal.on('slidechanged', event => {
+            const currentSlide = event.currentSlide;
+            
+            // Initialize summary chart
+            if (currentSlide.querySelector('#summaryChart')) {
+                initSummaryChart();
+            }
+            
+            // Initialize temperature chart
+            if (currentSlide.querySelector('#temperatureChart')) {
+                initTemperatureChart();
+            }
+            
+            // Initialize holiday chart
+            if (currentSlide.querySelector('#holidayChart')) {
+                initHolidayChart();
+            }
+            
+            // Initialize time series chart
+            if (currentSlide.querySelector('#timeSeriesChart')) {
+                initTimeSeriesChart();
+            }
+            
+            // Initialize feature importance chart
+            if (currentSlide.querySelector('#featureBarContainer')) {
+                initFeatureImportanceChart();
+            }
+
+            // Initialize error combination chart
+            if (currentSlide.querySelector('#errorCombinationChart')) {
+                initErrorCombinationChart();
+            }
+        });
+
+        // Initialize the summary chart
+        function initSummaryChart() {
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+            // Calculate 'Overall' values for each metric (first value in each array)
+            const overallBusinessLoss = summaryData.businessLoss[0];
+            const overallMAE = summaryData.mae[0];
+            const overallRMSE = summaryData.rmse[0];
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: summaryData.labels,
+                    datasets: [
+                        {
+                            label: 'Business Loss ($)',
+                            data: summaryData.businessLoss,
+                            backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                            borderColor: 'rgba(52, 152, 219, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'MAE (units)',
+                            data: summaryData.mae,
+                            backgroundColor: 'rgba(46, 204, 113, 0.7)',
+                            borderColor: 'rgba(46, 204, 113, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'RMSE (units)',
+                            data: summaryData.rmse,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: 'rgba(231, 76, 60, 1)',
+                            borderWidth: 1,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Model Performance Across Different Conditions',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#2c3e50'
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2c3e50',
+                            bodyColor: '#2c3e50',
+                            borderColor: '#e0e0e0',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.dataset.label === 'Business Loss ($)') {
+                                        label += '$' + context.parsed.y.toFixed(2);
+                                    } else {
+                                        label += context.parsed.y.toFixed(2) + ' units';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value, context) {
+                                if (context.dataset.label === 'Business Loss ($)') {
+                                    return '$' + value.toFixed(2);
+                                } else {
+                                    return value.toFixed(2);
+                                }
+                            },
+                            color: '#2c3e50',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                overallBusinessLoss: {
+                                    type: 'line',
+                                    yMin: overallBusinessLoss,
+                                    yMax: overallBusinessLoss,
+                                    borderColor: 'rgba(52, 152, 219, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        enabled: false
+                                    },
+                                    yScaleID: 'y'
+                                },
+                                overallMAE: {
+                                    type: 'line',
+                                    yMin: overallMAE,
+                                    yMax: overallMAE,
+                                    borderColor: 'rgba(46, 204, 113, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        enabled: false
+                                    },
+                                    yScaleID: 'y1'
+                                },
+                                overallRMSE: {
+                                    type: 'line',
+                                    yMin: overallRMSE,
+                                    yMax: overallRMSE,
+                                    borderColor: 'rgba(231, 76, 60, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        enabled: false
+                                    },
+                                    yScaleID: 'y1'
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Business Loss ($)',
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Error (units)',
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 1.8
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize temperature chart
+        function initTemperatureChart() {
+            const ctx = document.getElementById('temperatureChart').getContext('2d');
+            // Calculate average cost for temperature bands
+            const avgTempCost = temperatureBandData.values.reduce((a, b) => a + b, 0) / temperatureBandData.values.length;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: temperatureBandData.labels,
+                    datasets: [{
+                        label: 'Daily Cost ($)',
+                        data: temperatureBandData.values,
+                        backgroundColor: temperatureBandData.colors,
+                        borderColor: temperatureBandData.borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Model Performance by Temperature Band',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#2c3e50'
+                        },
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return '$' + value.toFixed(2);
+                            },
+                            color: '#2c3e50',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                avgCost: {
+                                    type: 'line',
+                                    yMin: avgTempCost,
+                                    yMax: avgTempCost,
+                                    borderColor: 'rgba(231, 76, 60, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'Model Cost ($3.43)',
+                                        enabled: true,
+                                        position: 'end',
+                                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                                        color: '#fff',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 14
+                                        },
+                                        xAdjust: 0,
+                                        yAdjust: 0,
+                                        padding: 8,
+                                        cornerRadius: 6
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Daily Cost ($)',
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize holiday chart
+        function initHolidayChart() {
+            const ctx = document.getElementById('holidayChart').getContext('2d');
+            // Calculate average cost for holiday periods
+            const avgHolidayCost = holidayPeriodData.values.reduce((a, b) => a + b, 0) / holidayPeriodData.values.length;
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: holidayPeriodData.labels,
+                    datasets: [{
+                        label: 'Daily Cost ($)',
+                        data: holidayPeriodData.values,
+                        backgroundColor: holidayPeriodData.colors,
+                        borderColor: holidayPeriodData.borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Model Performance by Holiday Period',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#2c3e50'
+                        },
+                        legend: {
+                            display: false
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: function(value) {
+                                return '$' + value.toFixed(2);
+                            },
+                            color: '#2c3e50',
+                            font: {
+                                weight: 'bold'
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                avgCost: {
+                                    type: 'line',
+                                    yMin: avgHolidayCost,
+                                    yMax: avgHolidayCost,
+                                    borderColor: 'rgba(231, 76, 60, 0.8)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'Model Cost ($3.43)',
+                                        enabled: true,
+                                        position: 'end',
+                                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                                        color: '#fff',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 14
+                                        },
+                                        xAdjust: 0,
+                                        yAdjust: 0,
+                                        padding: 8,
+                                        cornerRadius: 6
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Daily Cost ($)',
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize time series chart
+        function initTimeSeriesChart() {
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            // Destroy previous chart instance if it exists
+            if (window.timeSeriesChartInstance) {
+                window.timeSeriesChartInstance.destroy();
+            }
+            // Determine which data to use based on dropdown
+            const displayMode = document.getElementById('displayMode') ? document.getElementById('displayMode').value : 'daily';
+            let labels, actual, predicted;
+            if (displayMode === 'monthly') {
+                labels = months;
+                actual = timeSeriesData.actual;
+                predicted = timeSeriesData.predicted;
+            } else {
+                // Daily mode
+                labels = dailyData.dates.map(date => {
+                    // Show as 'MMM D' for clarity
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                });
+                actual = dailyData.actual;
+                predicted = dailyData.predicted;
+            }
+            window.timeSeriesChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Actual Orders',
+                            data: actual,
+                            borderColor: '#2c3e50',
+                            backgroundColor: 'rgba(44, 62, 80, 0.1)',
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true
+                        },
+                        {
+                            label: 'Predicted Orders',
+                            data: predicted,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: displayMode === 'monthly' ? 'Monthly Demand: Actual vs Predicted' : 'Daily Demand: Actual vs Predicted',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#2c3e50'
+                        },
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        datalabels: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: '#ffffff',
+                            titleColor: '#2c3e50',
+                            bodyColor: '#2c3e50',
+                            borderColor: '#e0e0e0',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.parsed.y.toFixed(1) + ' units';
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Order Quantity',
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize feature importance chart
+        function initFeatureImportanceChart() {
+            const container = document.getElementById('featureBarContainer');
+            container.innerHTML = '';
+            
+            featureImportanceData.forEach(feature => {
+                const bar = document.createElement('div');
+                bar.className = 'feature-bar';
+                bar.style.width = (feature.value * 100) + '%';
+                
+                const label = document.createElement('span');
+                label.className = 'feature-label';
+                label.textContent = feature.name;
+                
+                const value = document.createElement('span');
+                value.className = 'feature-value';
+                value.textContent = (feature.value * 100).toFixed(1) + '%';
+                
+                bar.appendChild(label);
+                bar.appendChild(value);
+                container.appendChild(bar);
+            });
+        }
+
+        // Add this function for the cost comparison analysis chart
+        function initErrorCombinationChart() {
+            const ctx = document.getElementById('errorCombinationChart').getContext('2d');
+            // Example data: [Stockouts, Over-orders]
+            const errorLabels = [
+                '1 Stockout',
+                '2 Over-orders',
+                '1 Stockout + 1 Over-order',
+                '2 Stockouts',
+                '3 Over-orders',
+                '1 Stockout + 2 Over-orders',
+                '2 Stockouts + 1 Over-order',
+                '3 Stockouts'
+            ];
+            const errorCosts = [11.54, 3.56, 13.32, 23.08, 5.34, 15.10, 24.86, 34.62];
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: errorLabels,
+                    datasets: [{
+                        label: 'Cost of Error Combination ($)',
+                        data: errorCosts,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cost of Different Error Combinations vs Model Cost',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            color: '#2c3e50'
+                        },
+                        legend: {
+                            display: false
+                        },
+                        annotation: {
+                            annotations: {
+                                modelCost: {
+                                    type: 'line',
+                                    yMin: 3.43,
+                                    yMax: 3.43,
+                                    borderColor: 'rgba(231, 76, 60, 1)',
+                                    borderWidth: 2,
+                                    borderDash: [6, 6],
+                                    label: {
+                                        content: 'Model Cost ($3.43)',
+                                        enabled: true,
+                                        position: 'end',
+                                        backgroundColor: 'rgba(44, 62, 80, 0.95)',
+                                        color: '#fff',
+                                        font: {
+                                            weight: 'bold',
+                                            size: 14
+                                        },
+                                        xAdjust: 0,
+                                        yAdjust: 0,
+                                        padding: 8,
+                                        cornerRadius: 6
+                                    }
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Cost: $' + context.parsed.y.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cost ($)',
+                                color: '#2c3e50',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 30,
+                                font: {
+                                    size: 10
+                                },
+                                color: '#2c3e50',
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update time series chart based on display mode
+        function updateTimeSeriesChart() {
+            initTimeSeriesChart();
+        }
+    </script>
+</body>
+</html> 

@@ -635,13 +635,6 @@
                 <option value="daily" selected>Daily (All Data Points)</option>
                 <option value="monthly">Monthly Averages</option>
             </select>
-            
-            <label for="seasonDisplay" style="margin-left: 20px;">Season Display:</label>
-            <select id="seasonDisplay" onchange="updateTimeSeriesChart()">
-                <option value="all" selected>All Year</option>
-                <option value="peak">Peak Season</option>
-                <option value="offpeak">Off-Peak Season</option>
-            </select>
         </div>
         <div class="chart-container">
             <canvas id="timeSeriesChart"></canvas>
@@ -1140,7 +1133,6 @@
         // Update the time series chart based on view mode selection
         function updateTimeSeriesChart() {
             const displayMode = document.getElementById('displayMode').value;
-            const seasonDisplay = document.getElementById('seasonDisplay').value;
             
             let labels, actualData, predictedData;
             
@@ -1155,11 +1147,7 @@
                     const month = dailyData.dates[i].getMonth();
                     const isPeakSeason = month >= 4 && month <= 8; // May-September
                     
-                    if (seasonDisplay === 'peak' && !isPeakSeason) continue;
-                    if (seasonDisplay === 'offpeak' && isPeakSeason) continue;
-                    
-                    // Take every 7th day for the daily view to avoid overcrowding
-                    if (i % 7 === 0) {
+                    if (isPeakSeason) {
                         filteredDates.push(dailyData.dates[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
                         filteredActual.push(dailyData.actual[i]);
                         filteredPredicted.push(dailyData.predicted[i]);
@@ -1171,27 +1159,11 @@
                 predictedData = filteredPredicted;
             } else {
                 // Monthly view
-                if (seasonDisplay === 'peak') {
+                if (isPeakSeason) {
                     // Only show peak season months (May-Sep)
                     labels = months.slice(4, 9);
                     actualData = timeSeriesData.actual.slice(4, 9);
                     predictedData = timeSeriesData.predicted.slice(4, 9);
-                } else if (seasonDisplay === 'offpeak') {
-                    // Only show off-peak season months (Oct-Apr)
-                    const firstHalf = {
-                        labels: months.slice(0, 4),
-                        actual: timeSeriesData.actual.slice(0, 4),
-                        predicted: timeSeriesData.predicted.slice(0, 4)
-                    };
-                    const secondHalf = {
-                        labels: months.slice(9),
-                        actual: timeSeriesData.actual.slice(9),
-                        predicted: timeSeriesData.predicted.slice(9)
-                    };
-                    
-                    labels = [...firstHalf.labels, ...secondHalf.labels];
-                    actualData = [...firstHalf.actual, ...secondHalf.actual];
-                    predictedData = [...firstHalf.predicted, ...secondHalf.predicted];
                 } else {
                     // All months
                     labels = months;
