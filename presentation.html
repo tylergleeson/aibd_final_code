@@ -330,7 +330,7 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="home-link-btn">Home</a>
+    <a href="https://tylergleeson.github.io/aibd_final_code/" class="home-link-btn" target="_blank">Home</a>
     <div class="reveal">
         <div class="slides">
             <!-- Title Slide -->
@@ -1477,26 +1477,20 @@
             initTimeSeriesChart();
         }
 
-        // Add Home button only to the title slide
-        function showHomeButtonOnTitleSlide() {
-            let btn = document.querySelector('.home-link-btn');
-            if (!btn) {
-                btn = document.createElement('a');
-                btn.href = 'https://tylergleeson.github.io/aibd_final_code/';
-                btn.className = 'home-link-btn';
-                btn.textContent = 'Home';
-                document.body.appendChild(btn);
+        // Add this at the end of the JS, before </script>
+        (function() {
+            function updateHomeBtnVisibility() {
+                var btn = document.querySelector('.home-link-btn');
+                var indices = Reveal.getIndices();
+                if (indices.h === 0 && indices.v === 0) {
+                    btn.style.display = 'block';
+                } else {
+                    btn.style.display = 'none';
+                }
             }
-            // Only show on first slide
-            const indices = Reveal.getIndices();
-            if (indices.h === 0 && indices.v === 0) {
-                btn.style.display = 'block';
-            } else {
-                btn.style.display = 'none';
-            }
-        }
-        Reveal.on('slidechanged', showHomeButtonOnTitleSlide);
-        Reveal.on('ready', showHomeButtonOnTitleSlide);
+            Reveal.on('slidechanged', updateHomeBtnVisibility);
+            Reveal.on('ready', updateHomeBtnVisibility);
+        })();
     </script>
 </body>
 </html> 
