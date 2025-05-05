@@ -112,26 +112,33 @@
         }
 
         .feature-bar {
-            height: 25px;
-            margin: 6px 0;
+            height: 28px;
+            margin: 10px 0;
             background: linear-gradient(90deg, var(--secondary-color) 0%, #2980b9 100%);
             border-radius: 4px;
-            position: relative;
             display: flex;
             align-items: center;
-            padding: 0 8px;
-            font-size: 0.9em;
+            padding: 0 12px;
+            font-size: 1.1vw;
+            white-space: nowrap;
+            overflow: hidden;
+            position: relative;
+            max-width: 100%;
+        }
+
+        .feature-label, .feature-value {
+            color: white;
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .feature-label {
-            color: white;
-            font-weight: bold;
             flex: 1;
         }
 
         .feature-value {
-            color: white;
-            font-weight: bold;
             margin-left: 10px;
         }
 
@@ -1284,20 +1291,25 @@
         function initFeatureImportanceChart() {
             const container = document.getElementById('featureBarContainer');
             container.innerHTML = '';
-            
+
+            const maxValue = 0.20; // Set axis max to 20%
             featureImportanceData.forEach(feature => {
                 const bar = document.createElement('div');
                 bar.className = 'feature-bar';
-                bar.style.width = (feature.value * 100) + '%';
-                
+                // Scale width so 0.20 (20%) = 100% width
+                bar.style.width = `${(feature.value / maxValue) * 100}%`;
+                bar.style.minWidth = '2%';
+                bar.style.position = 'relative';
+                bar.style.zIndex = 1;
+
                 const label = document.createElement('span');
                 label.className = 'feature-label';
                 label.textContent = feature.name;
-                
+
                 const value = document.createElement('span');
                 value.className = 'feature-value';
                 value.textContent = (feature.value * 100).toFixed(1) + '%';
-                
+
                 bar.appendChild(label);
                 bar.appendChild(value);
                 container.appendChild(bar);
