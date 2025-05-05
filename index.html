@@ -665,14 +665,16 @@
                 <li>Bayesian optimization for hyperparameter tuning</li>
             </ul>
         </div>
-
-        <h3>Feature Importance</h3>
+    </div>
+    <div class="section">
+        <h2>Feature Importance</h2>
         <div id="featureBarContainer"></div>
         <div class="info-box" style="margin-top: 12px; font-size: 1.05em; color: #2c3e50; background: #f8f9fa; border-left: 4px solid #3498db;">
-            <strong>What this shows:</strong> The bars above represent the relative importance of each feature in the predictive model. Features with higher values have a greater influence on the model's predictions. For example, "Day of Year" and "Temperature" are the most influential factors in forecasting chlorine demand.
+            <strong>What this shows:</strong> The bars above represent the relative importance of each feature in the predictive model. Features with higher values have a greater influence on the model's predictions. For example, "Day of Year" and "Temperature" are the most influential factors in forecasting chlorine demand. These values add up to 100% because they represent the relative contribution of each feature to the model's predictions, normalized so their total importance is always 100%.
         </div>
-
-        <h3>Model Specifications</h3>
+    </div>
+    <div class="section">
+        <h2>Model Specifications</h2>
         <table>
             <tr>
                 <th>Component</th>

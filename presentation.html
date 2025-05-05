@@ -32,11 +32,13 @@
         .reveal .slides section {
             padding: 3vw 4vw;
             height: auto;
-            max-width: 90vw;
+            max-width: none;
             min-width: 0;
             margin: 0 auto;
             word-break: break-word;
             overflow-wrap: break-word;
+            overflow-y: scroll;
+            max-height: 100vh;
         }
 
         .reveal h1 {
@@ -70,11 +72,11 @@
 
         .reveal .slides section {
             padding: 15px 30px;
-            height: 100%;
             box-sizing: border-box;
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: none;
             word-break: break-word;
+            overflow-y: scroll;
+            max-height: 100vh;
         }
 
         .chart-container {
@@ -183,16 +185,20 @@
             margin-bottom: 0.5vw;
         }
         .info-box {
-            background: #f8f9fa;
-            border-radius: 0.5vw;
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            font-size: max(1vw, 14px);
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            box-sizing: border-box;
             padding: 1vw 1.2vw;
             margin: 1vw 0;
-            max-width: 100%;
-            width: 100%;
-            box-sizing: border-box;
-            overflow-x: auto;
-            white-space: normal;
-            font-size: 1vw;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            color: #2c3e50;
+            border-radius: 0.5vw;
         }
 
         .team-info {
@@ -230,8 +236,25 @@
 
         .reveal table th,
         .reveal table td {
-            padding: 12px;
-            border: 1px solid var(--border-color);
+            padding: 8px 10px;
+            font-size: 0.95em;
+        }
+
+        .reveal table th:first-child,
+        .reveal table td:first-child {
+            min-width: 120px;
+        }
+        .reveal table th:nth-child(2),
+        .reveal table td:nth-child(2) {
+            min-width: 180px;
+        }
+        .reveal table th:nth-child(3),
+        .reveal table td:nth-child(3) {
+            min-width: 220px;
+        }
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
         }
 
         .reveal table th {
@@ -268,6 +291,20 @@
                 font-size: 3vw;
             }
             .info-box { font-size: 3vw; }
+        }
+        .feature-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .feature-bar-row .feature-label {
+            margin-right: 10px;
+            color: #2c3e50;
+            font-weight: bold;
+            min-width: 140px;
+            text-align: right;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -524,15 +561,8 @@
             <section>
                 <h2>Feature Importance</h2>
                 <div id="featureBarContainer"></div>
-                <div class="key-point">
-                    <h3>Top Features</h3>
-                    <ul>
-                        <li>Day of Year (18.7%)</li>
-                        <li>Temperature (16.5%)</li>
-                        <li>7-Day Rolling Avg (11.2%)</li>
-                        <li>Is Peak Season (9.4%)</li>
-                        <li>Month (8.6%)</li>
-                    </ul>
+                <div class="info-box" style="margin-top: 12px; background: #f8f9fa; border-left: 4px solid #3498db; color: #2c3e50;">
+                    <strong>What this shows:</strong> The bars above represent the relative importance of each feature in the model. Higher values mean greater influence on predictions. All values add up to 100%.
                 </div>
             </section>
 
@@ -549,9 +579,10 @@
                         <li>Bayesian optimization for hyperparameter tuning</li>
                     </ul>
                 </div>
-                <h3>Feature Importance</h3>
-                <div id="featureBarContainer"></div>
-                <h3>Model Specifications</h3>
+            </section>
+            <section>
+                <h2>Model Specifications</h2>
+                <div class="table-responsive">
                 <table>
                     <tr>
                         <th>Component</th>
@@ -569,18 +600,6 @@
                         <td>Predicting continuous order quantities</td>
                     </tr>
                     <tr>
-                        <td></td>
-                        <td colspan="2" style="padding: 10px; background-color: #f0f7ff; border-left: 4px solid var(--secondary-color);">
-                            <p><strong>Understanding L2 Loss Optimization:</strong></p>
-                            <p>The L2 Loss (Mean Squared Error) is used during model training to minimize the average squared difference between predictions and actual values. This means:</p>
-                            <ul>
-                                <li>Larger errors are penalized more heavily than smaller errors (due to squaring)</li>
-                                <li>The model learns to make predictions that minimize the overall squared error</li>
-                                <li>While training uses L2 Loss, our final evaluation uses a custom business loss function that accounts for the asymmetric costs of over- and under-prediction</li>
-                            </ul>
-                        </td>
-                    </tr>
-                    <tr>
                         <td><strong>Feature Engineering</strong></td>
                         <td>79 predictive features</td>
                         <td>Capturing seasonal, temporal, and environmental patterns</td>
@@ -596,6 +615,7 @@
                         <td>Maintaining temporal integrity during validation</td>
                     </tr>
                 </table>
+                </div>
             </section>
             <!-- Dataset and Methodology -->
             <section>
@@ -644,8 +664,13 @@
     <script>
         // Initialize Reveal.js
         Reveal.initialize({
+            width: '100%',
+            height: '100%',
+            margin: 0.05,
+            minScale: 0.2,
+            maxScale: 2.0,
             hash: true,
-            center: false,
+            center: true,
             transition: 'slide',
             // Add any additional configuration options here
         });
@@ -1294,10 +1319,10 @@
 
             const maxValue = 0.20; // Set axis max to 20%
             featureImportanceData.forEach(feature => {
+                const barPercent = (feature.value / maxValue) * 100;
                 const bar = document.createElement('div');
                 bar.className = 'feature-bar';
-                // Scale width so 0.20 (20%) = 100% width
-                bar.style.width = `${(feature.value / maxValue) * 100}%`;
+                bar.style.width = `${barPercent}%`;
                 bar.style.minWidth = '2%';
                 bar.style.position = 'relative';
                 bar.style.zIndex = 1;
@@ -1310,9 +1335,13 @@
                 value.className = 'feature-value';
                 value.textContent = (feature.value * 100).toFixed(1) + '%';
 
-                bar.appendChild(label);
+                // Always use flex row: label left, bar right
+                const row = document.createElement('div');
+                row.className = 'feature-bar-row';
+                row.appendChild(label);
                 bar.appendChild(value);
-                container.appendChild(bar);
+                row.appendChild(bar);
+                container.appendChild(row);
             });
         }
 
