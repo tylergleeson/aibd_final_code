@@ -307,10 +307,9 @@
             flex-shrink: 0;
         }
         .home-link-btn {
-            position: fixed;
-            top: 40px;
-            right: 48px;
-            z-index: 1000;
+            position: absolute;
+            top: 20px;
+            right: 20px;
             background: #3498db;
             color: #fff;
             padding: 12px 24px;
@@ -322,6 +321,7 @@
             box-shadow: 0 2px 8px rgba(44,62,80,0.08);
             transition: background 0.2s, box-shadow 0.2s;
             cursor: pointer;
+            z-index: 1000;
         }
         .home-link-btn:hover {
             background: #217dbb;
@@ -330,6 +330,7 @@
     </style>
 </head>
 <body>
+    <a href="index.html" class="home-link-btn">Home</a>
     <div class="reveal">
         <div class="slides">
             <!-- Title Slide -->
