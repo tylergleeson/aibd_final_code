@@ -82,7 +82,7 @@
             background-color: var(--background-light);
             padding: 15px;
             border-radius: 8px;
-            height: 350px;
+            height: 450px;
             position: relative;
             box-shadow: 0 2px 4px var(--shadow-color);
             border: 1px solid var(--border-color);
@@ -485,12 +485,15 @@
                 <div class="chart-controls">
                     <label for="displayMode">View Mode:</label>
                     <select id="displayMode" onchange="updateTimeSeriesChart()">
-                        <option value="daily" selected>Daily (All Data Points)</option>
-                        <option value="monthly">Monthly Averages</option>
+                        <option value="daily">Daily (All Data Points)</option>
+                        <option value="monthly" selected>Monthly Averages</option>
                     </select>
                 </div>
                 <div class="chart-container">
                     <canvas id="timeSeriesChart"></canvas>
+                </div>
+                <div class="callout-box" style="margin-top: 20px; font-size: 1.2em; background: #f8f9fa; border-left: 5px solid #f1c40f; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 18px 24px;">
+                  <strong>Key Insight:</strong> November shows a significant gap between predicted and actual orders—investigate holiday and seasonal effects.
                 </div>
             </section>
             <!-- Time Series Analysis: November Note -->
@@ -1140,25 +1143,24 @@
         // Initialize time series chart
         function initTimeSeriesChart() {
             const ctx = document.getElementById('timeSeriesChart').getContext('2d');
-            // Destroy previous chart instance if it exists
             if (window.timeSeriesChartInstance) {
                 window.timeSeriesChartInstance.destroy();
             }
-            // Determine which data to use based on dropdown
-            const displayMode = document.getElementById('displayMode') ? document.getElementById('displayMode').value : 'daily';
+            const displayMode = document.getElementById('displayMode') ? document.getElementById('displayMode').value : 'monthly';
             let labels, actual, predicted;
             if (displayMode === 'monthly') {
                 labels = months;
                 actual = timeSeriesData.actual;
                 predicted = timeSeriesData.predicted;
             } else {
-                // Daily mode
-                labels = dailyData.dates.map(date => {
-                    // Show as 'MMM D' for clarity
-                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                });
-                actual = dailyData.actual;
-                predicted = dailyData.predicted;
+                // Downsample daily data for presentation clarity
+                function downsample(array, step) {
+                  return array.filter((_, i) => i % step === 0);
+                }
+                const downsampleStep = 5;
+                labels = downsample(dailyData.dates.map(date => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })), downsampleStep);
+                actual = downsample(dailyData.actual, downsampleStep);
+                predicted = downsample(dailyData.predicted, downsampleStep);
             }
             window.timeSeriesChartInstance = new Chart(ctx, {
                 type: 'line',
@@ -1171,8 +1173,8 @@
                             borderColor: '#2c3e50',
                             backgroundColor: 'rgba(44, 62, 80, 0.1)',
                             tension: 0.4,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
                             fill: true
                         },
                         {
@@ -1181,8 +1183,8 @@
                             borderColor: '#e74c3c',
                             backgroundColor: 'rgba(231, 76, 60, 0.1)',
                             tension: 0.4,
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
                             fill: true
                         }
                     ]
@@ -1195,7 +1197,7 @@
                             display: true,
                             text: displayMode === 'monthly' ? 'Monthly Demand: Actual vs Predicted' : 'Daily Demand: Actual vs Predicted',
                             font: {
-                                size: 18,
+                                size: 24,
                                 weight: 'bold'
                             },
                             color: '#2c3e50'
@@ -1205,6 +1207,7 @@
                             labels: {
                                 color: '#2c3e50',
                                 font: {
+                                    size: 18,
                                     weight: 'bold'
                                 }
                             }
@@ -1220,6 +1223,7 @@
                             bodyColor: '#2c3e50',
                             borderColor: '#e0e0e0',
                             borderWidth: 1,
+                            bodyFont: { size: 16 },
                             callbacks: {
                                 label: function(context) {
                                     let label = context.dataset.label || '';
@@ -1240,6 +1244,7 @@
                                 text: 'Order Quantity',
                                 color: '#2c3e50',
                                 font: {
+                                    size: 18,
                                     weight: 'bold'
                                 }
                             },
@@ -1249,6 +1254,7 @@
                             ticks: {
                                 color: '#2c3e50',
                                 font: {
+                                    size: 16,
                                     weight: 'bold'
                                 }
                             }
@@ -1260,8 +1266,13 @@
                             ticks: {
                                 color: '#2c3e50',
                                 font: {
+                                    size: 16,
                                     weight: 'bold'
-                                }
+                                },
+                                maxRotation: displayMode === 'daily' ? 30 : 0,
+                                minRotation: displayMode === 'daily' ? 30 : 0,
+                                autoSkip: true,
+                                maxTicksLimit: displayMode === 'daily' ? 20 : 12
                             }
                         }
                     }

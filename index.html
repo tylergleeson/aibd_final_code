@@ -1137,39 +1137,19 @@
             let labels, actualData, predictedData;
             
             if (displayMode === 'daily') {
-                // Daily view - show a reduced set of points for readability
-                const filteredDates = [];
-                const filteredActual = [];
-                const filteredPredicted = [];
-                
-                // Filter data for season if needed
-                for (let i = 0; i < dailyData.dates.length; i++) {
-                    const month = dailyData.dates[i].getMonth();
-                    const isPeakSeason = month >= 4 && month <= 8; // May-September
-                    
-                    if (isPeakSeason) {
-                        filteredDates.push(dailyData.dates[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-                        filteredActual.push(dailyData.actual[i]);
-                        filteredPredicted.push(dailyData.predicted[i]);
-                    }
+                // Daily view - show a reduced set of points for readability (downsample, but do not filter by season)
+                function downsample(array, step) {
+                  return array.filter((_, i) => i % step === 0);
                 }
-                
-                labels = filteredDates;
-                actualData = filteredActual;
-                predictedData = filteredPredicted;
+                const downsampleStep = 3; // Show every 3rd day for clarity
+                labels = downsample(dailyData.dates.map(date => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })), downsampleStep);
+                actualData = downsample(dailyData.actual, downsampleStep);
+                predictedData = downsample(dailyData.predicted, downsampleStep);
             } else {
                 // Monthly view
-                if (isPeakSeason) {
-                    // Only show peak season months (May-Sep)
-                    labels = months.slice(4, 9);
-                    actualData = timeSeriesData.actual.slice(4, 9);
-                    predictedData = timeSeriesData.predicted.slice(4, 9);
-                } else {
-                    // All months
-                    labels = months;
-                    actualData = timeSeriesData.actual;
-                    predictedData = timeSeriesData.predicted;
-                }
+                labels = months;
+                actualData = timeSeriesData.actual;
+                predictedData = timeSeriesData.predicted;
             }
             
             // Update chart data
