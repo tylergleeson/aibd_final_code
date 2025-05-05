@@ -416,10 +416,8 @@
         }
 
         .slides-link-btn {
-            position: fixed;
-            top: 56px;
-            right: 64px;
-            z-index: 1000;
+            float: right;
+            margin-left: 20px;
             background: #3498db;
             color: #fff;
             padding: 12px 24px;
@@ -436,11 +434,17 @@
             background: #217dbb;
             box-shadow: 0 4px 16px rgba(44,62,80,0.15);
         }
+
+        .project-header::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
     </style>
 </head>
 <body>
-    <a href="https://github.com/tylergleeson/aibd_final_code/blob/main/presentation.html" class="slides-link-btn" target="_blank">Slides</a>
     <div class="project-header">
+        <a href="https://github.com/tylergleeson/aibd_final_code/blob/main/presentation.html" class="slides-link-btn" target="_blank">Slides</a>
         <h1>Chlorine Demand Prediction Model</h1>
         <div class="subtitle">Optimizing Inventory Management Through Machine Learning</div>
         <div class="team-info">
